@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Sprint Cafe ☕🥭</title>
+  <meta name="description" content="A cozy pastel focus timer where every study sprint fills a cafe drink and earns tiny rewards." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <section class="hero-card" aria-labelledby="app-title">
+      <div>
+        <p class="eyebrow">Mango + Kiwi present</p>
+        <h1 id="app-title">Study Sprint Cafe</h1>
+        <p class="hero-copy">Pick a drink, start a sprint, and let the cup fill while you study. Tiny cafe wins count too, bestie.</p>
+      </div>
+      <div class="barista-card" aria-label="Kiwi the Cat cafe mascot">
+        <div class="kiwi-cat" aria-hidden="true">
+          <span class="ear left"></span>
+          <span class="ear right"></span>
+          <span class="bow"></span>
+          <span class="face">• •</span>
+          <span class="mouth">ᴗ</span>
+          <span class="paw"></span>
+        </div>
+        <p id="kiwi-line"><strong>Kiwi:</strong> Welcome in. I will judge distractions, but lovingly.</p>
+      </div>
+    </section>
+
+    <section class="cafe-grid">
+      <article class="panel timer-panel" aria-labelledby="timer-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Current order</p>
+            <h2 id="timer-heading">Focus Sprint</h2>
+          </div>
+          <span class="badge" id="mode-badge">25 min</span>
+        </div>
+
+        <div class="drink-stage" aria-label="Animated cafe drink progress">
+          <div class="steam" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="cup">
+            <div class="drink-fill" id="drink-fill"></div>
+            <div class="cup-shine"></div>
+          </div>
+          <div class="saucer"></div>
+        </div>
+
+        <div class="timer-display" id="timer-display" aria-live="polite">25:00</div>
+        <p class="timer-caption" id="timer-caption">Ready when you are. Your drink is empty and full of potential.</p>
+
+        <div class="mode-row" role="group" aria-label="Timer modes">
+          <button class="mode-btn active" data-mode="focus">Focus 25</button>
+          <button class="mode-btn" data-mode="short">Break 5</button>
+          <button class="mode-btn" data-mode="long">Deep 50</button>
+        </div>
+
+        <div class="control-row">
+          <button class="primary-btn" id="start-pause-btn">Start Sprint</button>
+          <button class="secondary-btn" id="reset-btn">Reset</button>
+        </div>
+      </article>
+
+      <article class="panel" aria-labelledby="drink-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Cafe menu</p>
+            <h2 id="drink-heading">Choose your drink</h2>
+          </div>
+        </div>
+        <div class="drink-menu" id="drink-menu" role="listbox" aria-label="Choose a cafe drink">
+          <button class="drink-option active" data-drink="matcha" role="option" aria-selected="true"><span>🍵</span><b>Matcha Cloud</b><small>calm focus</small></button>
+          <button class="drink-option" data-drink="boba" role="option" aria-selected="false"><span>🧋</span><b>Mango Boba</b><small>sweet momentum</small></button>
+          <button class="drink-option" data-drink="latte" role="option" aria-selected="false"><span>☕</span><b>Cozy Latte</b><small>soft grind</small></button>
+          <button class="drink-option" data-drink="tea" role="option" aria-selected="false"><span>🫖</span><b>Peach Tea</b><small>gentle reset</small></button>
+        </div>
+      </article>
+
+      <article class="panel" aria-labelledby="task-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Tiny order ticket</p>
+            <h2 id="task-heading">Sprint goal</h2>
+          </div>
+        </div>
+        <label class="input-label" for="goal-input">What are we focusing on?</label>
+        <div class="goal-form">
+          <input id="goal-input" type="text" maxlength="90" placeholder="e.g. review glycolysis notes" />
+          <button class="secondary-btn" id="save-goal-btn">Save</button>
+        </div>
+        <div class="goal-ticket" id="goal-ticket">No order yet — choose one tiny study target.</div>
+        <button class="link-btn" id="tiny-suggestion-btn">Give me a tiny suggestion</button>
+      </article>
+
+      <article class="panel rewards-panel" aria-labelledby="rewards-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Loyalty card</p>
+            <h2 id="rewards-heading">Cafe rewards</h2>
+          </div>
+          <span class="badge"><span id="session-count">0</span> sprints</span>
+        </div>
+        <div class="stamp-card" id="stamp-card" aria-label="Ten stamp loyalty card"></div>
+        <div class="stats-row">
+          <div><b id="minutes-focused">0</b><span>minutes</span></div>
+          <div><b id="sticker-count">0</b><span>stickers</span></div>
+        </div>
+        <div class="sticker-shelf" id="sticker-shelf" aria-live="polite"></div>
+      </article>
+
+      <article class="panel log-panel" aria-labelledby="log-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Cafe log</p>
+            <h2 id="log-heading">Recent wins</h2>
+          </div>
+          <button class="link-btn" id="clear-log-btn">Clear</button>
+        </div>
+        <ul id="cafe-log" class="cafe-log"></ul>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
