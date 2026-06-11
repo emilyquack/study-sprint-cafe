@@ -37,6 +37,16 @@ let state = {
 };
 
 let tickHandle = null;
+let mascotAction = 'idle';
+let mascotActionHandle = null;
+
+const MASCOT_ACTION_LABELS = {
+  idle: 'Barista apron on. Ready to make your drink.',
+  prep: 'Tiny paws are measuring syrup and fluffing foam.',
+  making: 'Kiwi is actively making your drink while you focus.',
+  pour: 'Pouring a tiny victory drink with dramatic cafe flair.',
+  celebrate: 'Order complete! Kiwi is doing a barista victory wiggle.'
+};
 
 function loadState() {
   try {
@@ -79,6 +89,23 @@ function getProgressPercent() {
 
 function setKiwiLine(message) {
   $('kiwi-line').innerHTML = `<strong>Kiwi:</strong> ${message}`;
+}
+
+function setMascotAction(action = 'idle', duration = 0) {
+  mascotAction = MASCOT_ACTION_LABELS[action] ? action : 'idle';
+  if (mascotActionHandle) clearTimeout(mascotActionHandle);
+  mascotActionHandle = null;
+  if (duration > 0) {
+    mascotActionHandle = setTimeout(() => {
+      mascotAction = state.running ? 'making' : 'idle';
+      mascotActionHandle = null;
+      render();
+    }, duration);
+  }
+}
+
+function getMascotActionLabel() {
+  return MASCOT_ACTION_LABELS[mascotAction === 'idle' && state.running ? 'making' : mascotAction];
 }
 
 function renderStamps() {
@@ -126,12 +153,17 @@ function renderLog() {
 
 function render() {
   const mode = MODES[state.mode];
+  const progress = getProgressPercent();
+  const activeMascotAction = mascotAction === 'idle' && state.running ? 'making' : mascotAction;
   document.body.dataset.drink = state.selectedDrink;
+  document.body.dataset.making = activeMascotAction;
   $('timer-heading').textContent = mode.label;
   $('mode-badge').textContent = `${mode.minutes} min`;
   $('timer-display').textContent = formatTime(state.remainingSeconds);
   $('timer-caption').textContent = state.running ? 'Sprint in progress. Your drink is filling — keep going, tiny cafe champion.' : mode.caption;
-  $('drink-fill').style.height = `${getProgressPercent()}%`;
+  $('drink-fill').style.height = `${progress}%`;
+  $('mascot-drink-fill').style.height = `${progress}%`;
+  $('mascot-action-label').textContent = getMascotActionLabel();
   $('start-pause-btn').textContent = state.running ? 'Pause' : 'Start Sprint';
   $('goal-input').value = state.currentGoal;
   $('goal-ticket').textContent = state.currentGoal ? `Order ticket: ${state.currentGoal}` : 'No order yet — choose one tiny study target.';
@@ -156,6 +188,7 @@ function render() {
 function setMode(modeName) {
   if (!MODES[modeName]) return;
   stopTimer();
+  setMascotAction('idle');
   state.mode = modeName;
   state.remainingSeconds = MODES[modeName].minutes * 60;
   setKiwiLine(`${MODES[modeName].label} queued. I have prepared one tiny motivational napkin.`);
@@ -166,7 +199,8 @@ function setMode(modeName) {
 function setDrink(drinkName) {
   if (!DRINK_LINES[drinkName]) return;
   state.selectedDrink = drinkName;
-  setKiwiLine(DRINK_LINES[drinkName]);
+  setMascotAction('prep', 1600);
+  setKiwiLine(`${DRINK_LINES[drinkName]} Apron tied, tiny paws prepping the order.`);
   saveState();
   render();
 }
@@ -176,7 +210,8 @@ function startTimer() {
   state.running = true;
   state.startedAt = Date.now();
   tickHandle = setInterval(tick, 1000);
-  setKiwiLine('Timer started. I am wearing my most serious little apron.');
+  setMascotAction('making');
+  setKiwiLine('Timer started. Apron tied. I am making your drink with extremely serious tiny paws.');
   render();
 }
 
@@ -190,7 +225,8 @@ function stopTimer() {
 function pauseTimer() {
   if (!state.running) return;
   stopTimer();
-  setKiwiLine('Paused. No guilt allowed in this cafe.');
+  setMascotAction('idle');
+  setKiwiLine('Paused. Kiwi sets the pitcher down gently. No guilt allowed in this cafe.');
   saveState();
   render();
 }
@@ -202,8 +238,9 @@ function toggleTimer() {
 
 function resetTimer() {
   stopTimer();
+  setMascotAction('idle');
   state.remainingSeconds = MODES[state.mode].minutes * 60;
-  setKiwiLine('Reset complete. Fresh cup, fresh vibes.');
+  setKiwiLine('Reset complete. Fresh cup, fresh vibes, apron still adorable.');
   saveState();
   render();
 }
@@ -221,6 +258,7 @@ function tick() {
 function completeSprint() {
   const mode = MODES[state.mode];
   stopTimer();
+  setMascotAction('celebrate', 2600);
   state.remainingSeconds = mode.minutes * 60;
   state.sessions += 1;
   state.minutesFocused += mode.minutes;
