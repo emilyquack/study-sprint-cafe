@@ -375,6 +375,30 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -0.03em; }
   background: var(--matcha);
   transition: height 0.5s ease, background 0.3s ease;
 }
+.mini-boba-pearls {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  width: auto;
+  height: 11px;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+.mini-boba-pearls::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #4a2f2a;
+  box-shadow: 7px 3px 0 #4a2f2a, 15px 1px 0 #4a2f2a, 21px 4px 0 #4a2f2a;
+}
 .milk-pitcher {
   position: absolute;
   left: 21px;
@@ -522,6 +546,33 @@ body[data-making="celebrate"] .making-sparkles span:nth-child(3) { animation-del
   background: linear-gradient(180deg, #cde49c, var(--matcha));
   transition: height 0.5s ease, background 0.3s ease;
 }
+.boba-pearls {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  height: 44px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+.boba-pearls span {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 32% 30%, #7b544b 0 20%, #4a2f2a 58%, #2a1a17 100%);
+  box-shadow: inset -2px -3px 0 rgba(0, 0, 0, 0.12), 0 4px 7px rgba(74, 47, 42, 0.25);
+  animation: bobaBob 3s ease-in-out infinite;
+}
+.boba-pearls span:nth-child(1) { left: 0; bottom: 2px; animation-delay: 0s; }
+.boba-pearls span:nth-child(2) { left: 25px; bottom: 15px; animation-delay: 0.25s; }
+.boba-pearls span:nth-child(3) { left: 52px; bottom: 5px; animation-delay: 0.1s; }
+.boba-pearls span:nth-child(4) { left: 79px; bottom: 18px; animation-delay: 0.35s; }
+.boba-pearls span:nth-child(5) { left: 106px; bottom: 4px; animation-delay: 0.18s; }
+.boba-pearls span:nth-child(6) { left: 132px; bottom: 16px; animation-delay: 0.45s; }
+.boba-pearls span:nth-child(7) { left: 154px; bottom: 3px; animation-delay: 0.28s; }
 .cup-shine {
   position: absolute;
   top: 34px;
@@ -639,11 +690,13 @@ button:focus-visible, input:focus-visible { outline: 4px solid rgba(255, 143, 17
 .cafe-log strong { color: var(--ink); }
 
 body[data-drink="boba"] .drink-fill, body[data-drink="boba"] .mini-cup span { background: linear-gradient(180deg, #ffd580, #f6a04d); }
+body[data-drink="boba"] .boba-pearls, body[data-drink="boba"] .mini-boba-pearls { opacity: 1; }
 body[data-drink="latte"] .drink-fill, body[data-drink="latte"] .mini-cup span { background: linear-gradient(180deg, #e3c0a8, var(--coffee)); }
 body[data-drink="tea"] .drink-fill, body[data-drink="tea"] .mini-cup span { background: linear-gradient(180deg, #ffd0d0, var(--tea)); }
 body[data-drink="matcha"] .drink-fill, body[data-drink="matcha"] .mini-cup span { background: linear-gradient(180deg, #d9ebb0, var(--matcha)); }
 
 @keyframes floatCat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes bobaBob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.03); } }
 @keyframes blinkEyes { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
 @keyframes wavePaw { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-25deg); } }
 @keyframes stirPaw { 0%, 100% { transform: rotate(5deg) translateX(0); } 50% { transform: rotate(-12deg) translateX(4px); } }
