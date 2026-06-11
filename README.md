@@ -14,20 +14,6 @@ A cozy, pastel, GitHub Pages-ready focus timer where every study sprint fills a 
 - `localStorage` persistence per browser/device
 - No build step and no app secrets — just static HTML/CSS/JS
 
-## Run locally
-
-From this folder:
-
-```bash
-python -m http.server 8088
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8088/
-```
-
 ## Publish with GitHub Pages later
 
 1. Create a GitHub repo, for example `study-sprint-cafe`.
