@@ -598,7 +598,17 @@ body[data-making="celebrate"] .making-sparkles span:nth-child(3) { animation-del
   letter-spacing: -0.08em;
   margin: 28px 0 10px;
 }
-.timer-caption { min-height: 52px; margin-bottom: 24px; color: var(--muted); text-align: center; line-height: 1.5; }
+.timer-caption { min-height: 52px; margin-bottom: 10px; color: var(--muted); text-align: center; line-height: 1.5; }
+.sound-note {
+  margin: 0 0 24px;
+  color: #a66d50;
+  background: rgba(255, 250, 244, 0.72);
+  border: 1px solid #f2dac9;
+  border-radius: 999px;
+  padding: 8px 13px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
 
 .mode-row, .control-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; }
 .mode-btn, .secondary-btn, .primary-btn, .link-btn {
@@ -678,7 +688,24 @@ button:focus-visible, input:focus-visible { outline: 4px solid rgba(255, 143, 17
   font-weight: 800;
 }
 .stamp.filled { background: #fff0f5; border-style: solid; border-color: var(--rose); color: var(--rose); }
-.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.loyalty-message {
+  margin: -4px 0 16px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid #f0dbcf;
+  background: #fffaf4;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.loyalty-message.complete {
+  color: #9c6a49;
+  border-color: rgba(255, 179, 138, 0.58);
+  background: linear-gradient(135deg, #fff7d8, #fff0f5);
+  box-shadow: 0 12px 24px rgba(255, 143, 171, 0.14);
+}
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
 .stats-row div { background: #fffaf4; border-radius: 18px; padding: 14px; text-align: center; }
 .stats-row b { display: block; font-size: 1.8rem; }
 .stats-row span { color: var(--muted); font-size: 0.82rem; font-weight: 700; }

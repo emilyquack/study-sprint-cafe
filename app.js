@@ -21,6 +21,8 @@ const SUGGESTIONS = [
 ];
 
 const STICKERS = ['🥐', '🍓', '🍵', '🧋', '🥭', '🐈', '✨', '🍰', '☕', '🌸'];
+const LOYALTY_CARD_SIZE = 10;
+const LOYALTY_REWARDS = ['Free cozy refill', 'Tiny cake coupon', 'Golden mango stamp', 'VIP window seat'];
 const STORAGE_KEY = 'study_sprint_cafe_state_v1';
 
 let state = {
@@ -33,12 +35,14 @@ let state = {
   sessions: 0,
   minutesFocused: 0,
   stickers: [],
+  loyaltyCards: 0,
   log: []
 };
 
 let tickHandle = null;
 let mascotAction = 'idle';
 let mascotActionHandle = null;
+let completionAudio = null;
 
 const MASCOT_ACTION_LABELS = {
   idle: 'Barista apron on. Ready to make your drink.',
@@ -59,6 +63,9 @@ function loadState() {
         state.remainingSeconds = MODES[state.mode].minutes * 60;
       }
       state.stickers = Array.isArray(state.stickers) ? state.stickers : [];
+      state.loyaltyCards = Number.isFinite(state.loyaltyCards)
+        ? state.loyaltyCards
+        : Math.floor((Number(state.sessions) || 0) / LOYALTY_CARD_SIZE);
       state.log = Array.isArray(state.log) ? state.log.slice(0, 8) : [];
     }
   } catch (error) {
@@ -108,16 +115,85 @@ function getMascotActionLabel() {
   return MASCOT_ACTION_LABELS[mascotAction === 'idle' && state.running ? 'making' : mascotAction];
 }
 
+function getCompletionAudio() {
+  const AudioCtx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
+  if (!AudioCtx) return null;
+  if (!completionAudio) completionAudio = new AudioCtx();
+  if (completionAudio.state === 'suspended' && typeof completionAudio.resume === 'function') {
+    completionAudio.resume().catch(() => {});
+  }
+  return completionAudio;
+}
+
+function unlockCompletionChime() {
+  try {
+    getCompletionAudio();
+  } catch (error) {
+    console.warn('Completion chime could not unlock', error);
+  }
+}
+
+function playCompletionChime() {
+  try {
+    const audio = getCompletionAudio();
+    if (!audio) return;
+    const now = audio.currentTime;
+    const master = audio.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.13, now + 0.04);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 1.75);
+    master.connect(audio.destination);
+
+    [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+      const start = now + index * 0.18;
+      const osc = audio.createOscillator();
+      const noteGain = audio.createGain();
+      osc.type = index === 3 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(frequency, start);
+      noteGain.gain.setValueAtTime(0.0001, start);
+      noteGain.gain.exponentialRampToValueAtTime(0.18, start + 0.035);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.78);
+      osc.connect(noteGain).connect(master);
+      osc.start(start);
+      osc.stop(start + 0.9);
+    });
+  } catch (error) {
+    console.warn('Completion chime could not play', error);
+  }
+}
+
+function getStampCount() {
+  return state.sessions % LOYALTY_CARD_SIZE;
+}
+
+function getLoyaltyReward(cardNumber = state.loyaltyCards + 1) {
+  return LOYALTY_REWARDS[(cardNumber - 1) % LOYALTY_REWARDS.length];
+}
+
 function renderStamps() {
   const stampCard = $('stamp-card');
   stampCard.innerHTML = '';
-  const filled = state.sessions % 10;
-  for (let i = 0; i < 10; i += 1) {
+  const filled = getStampCount();
+  for (let i = 0; i < LOYALTY_CARD_SIZE; i += 1) {
     const stamp = document.createElement('div');
-    stamp.className = `stamp ${i < filled || (filled === 0 && state.sessions > 0) ? 'filled' : ''}`;
-    stamp.textContent = i < filled || (filled === 0 && state.sessions > 0) ? '✓' : i + 1;
+    const isFilled = i < filled;
+    stamp.className = `stamp ${isFilled ? 'filled' : ''}`;
+    stamp.textContent = isFilled ? '✓' : i + 1;
     stampCard.appendChild(stamp);
   }
+}
+
+function renderLoyaltyMessage() {
+  const message = $('loyalty-message');
+  const stamps = getStampCount();
+  if (state.sessions > 0 && stamps === 0) {
+    const reward = getLoyaltyReward(state.loyaltyCards || Math.floor(state.sessions / LOYALTY_CARD_SIZE));
+    message.className = 'loyalty-message complete';
+    message.textContent = `Loyalty card complete! Kiwi served a ${reward}. New 10-stamp card started.`;
+    return;
+  }
+  message.className = 'loyalty-message';
+  message.textContent = `${stamps}/${LOYALTY_CARD_SIZE} stamps on this card. ${LOYALTY_CARD_SIZE - stamps} more until a tiny cafe reward.`;
 }
 
 function renderStickers() {
@@ -170,6 +246,7 @@ function render() {
   $('session-count').textContent = state.sessions;
   $('minutes-focused').textContent = state.minutesFocused;
   $('sticker-count').textContent = state.stickers.length;
+  $('treat-count').textContent = state.loyaltyCards;
 
   document.querySelectorAll('.mode-btn').forEach(button => {
     button.classList.toggle('active', button.dataset.mode === state.mode);
@@ -181,6 +258,7 @@ function render() {
   });
 
   renderStamps();
+  renderLoyaltyMessage();
   renderStickers();
   renderLog();
 }
@@ -209,6 +287,7 @@ function startTimer() {
   if (state.running) return;
   state.running = true;
   state.startedAt = Date.now();
+  unlockCompletionChime();
   tickHandle = setInterval(tick, 1000);
   setMascotAction('making');
   setKiwiLine('Timer started. Apron tied. I am making your drink with extremely serious tiny paws.');
@@ -258,19 +337,33 @@ function tick() {
 function completeSprint() {
   const mode = MODES[state.mode];
   stopTimer();
+  playCompletionChime();
   setMascotAction('celebrate', 2600);
   state.remainingSeconds = mode.minutes * 60;
   state.sessions += 1;
   state.minutesFocused += mode.minutes;
+  const completedLoyaltyCard = state.sessions % LOYALTY_CARD_SIZE === 0;
   const sticker = STICKERS[(state.sessions - 1) % STICKERS.length];
   state.stickers.push(sticker);
   const goal = state.currentGoal || 'mystery study quest';
-  state.log.unshift({
-    title: `${sticker} ${mode.label} complete`,
-    detail: `${mode.minutes} minutes for “${goal}”. Kiwi stamped the loyalty card with great ceremony.`
-  });
+
+  if (completedLoyaltyCard) {
+    state.loyaltyCards += 1;
+    const reward = getLoyaltyReward(state.loyaltyCards);
+    state.stickers.push('🎟️');
+    state.log.unshift({
+      title: `🎟️ Loyalty card ${state.loyaltyCards} complete`,
+      detail: `10/10 stamps! Kiwi awarded a ${reward}, reset the card, and slid over a fresh blank one.`
+    });
+    setKiwiLine(`Loyalty card complete! Chill chime played. You earned a ${reward}, and Kiwi reset your stamp card for the next round.`);
+  } else {
+    state.log.unshift({
+      title: `${sticker} ${mode.label} complete`,
+      detail: `${mode.minutes} minutes for “${goal}”. Kiwi stamped the loyalty card with great ceremony. ${getStampCount()}/${LOYALTY_CARD_SIZE} stamps filled.`
+    });
+    setKiwiLine(`Sprint complete! Chill chime played. You earned ${sticker}. ${getStampCount()}/${LOYALTY_CARD_SIZE} loyalty stamps filled.`);
+  }
   state.log = state.log.slice(0, 8);
-  setKiwiLine(`Sprint complete! You earned ${sticker}. Please accept one tiny forehead bonk of academic approval.`);
   saveState();
   render();
 }
@@ -326,8 +419,12 @@ if (typeof window !== 'undefined') {
   window.StudySprintCafe = {
     get state() { return state; },
     MODES,
+    LOYALTY_CARD_SIZE,
     formatTime,
     getProgressPercent,
+    getStampCount,
+    unlockCompletionChime,
+    playCompletionChime,
     setMode,
     setDrink,
     startTimer,
