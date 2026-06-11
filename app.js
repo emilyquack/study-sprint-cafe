@@ -22,7 +22,28 @@ const SUGGESTIONS = [
 
 const STICKERS = ['🥐', '🍓', '🍵', '🧋', '🥭', '🐈', '✨', '🍰', '☕', '🌸'];
 const LOYALTY_CARD_SIZE = 10;
-const LOYALTY_REWARDS = ['Free cozy refill', 'Tiny cake coupon', 'Golden mango stamp', 'VIP window seat'];
+const LOYALTY_REWARDS = [
+  'Free Cozy Refill',
+  'Tiny Cake Coupon',
+  'Golden Mango Stamp',
+  'VIP Window Seat',
+  'Boba Pearl Bonus Cup',
+  'Mini Croissant Charm',
+  'Cat Paw Macaron',
+  'Study Sundae Sprinkle Pass',
+  'Peach Tea Biscuit',
+  'Matcha Cloud Puff',
+  'Mango Mochi Bite',
+  'Focus Fairy Toast',
+  'Kiwi’s Secret Menu Ticket',
+  'Lucky Desk Cookie',
+  'Purrfect Parfait Cup',
+  'Napkin Doodle Portrait',
+  'Tiny Victory Donut',
+  'Extra Foam Crown',
+  'Cafe Passport Sticker',
+  'Mango Star Jelly'
+];
 const STORAGE_KEY = 'study_sprint_cafe_state_v1';
 
 let state = {
@@ -36,6 +57,7 @@ let state = {
   minutesFocused: 0,
   stickers: [],
   loyaltyCards: 0,
+  lastLoyaltyReward: '',
   log: []
 };
 
@@ -66,6 +88,7 @@ function loadState() {
       state.loyaltyCards = Number.isFinite(state.loyaltyCards)
         ? state.loyaltyCards
         : Math.floor((Number(state.sessions) || 0) / LOYALTY_CARD_SIZE);
+      state.lastLoyaltyReward = typeof state.lastLoyaltyReward === 'string' ? state.lastLoyaltyReward : '';
       state.log = Array.isArray(state.log) ? state.log.slice(0, 8) : [];
     }
   } catch (error) {
@@ -166,8 +189,15 @@ function getStampCount() {
   return state.sessions % LOYALTY_CARD_SIZE;
 }
 
-function getLoyaltyReward(cardNumber = state.loyaltyCards + 1) {
-  return LOYALTY_REWARDS[(cardNumber - 1) % LOYALTY_REWARDS.length];
+function getRandomLoyaltyReward() {
+  const options = LOYALTY_REWARDS.length > 1
+    ? LOYALTY_REWARDS.filter(reward => reward !== state.lastLoyaltyReward)
+    : LOYALTY_REWARDS;
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+function getLatestLoyaltyReward() {
+  return state.lastLoyaltyReward || 'tiny cafe reward';
 }
 
 function renderStamps() {
@@ -187,7 +217,7 @@ function renderLoyaltyMessage() {
   const message = $('loyalty-message');
   const stamps = getStampCount();
   if (state.sessions > 0 && stamps === 0) {
-    const reward = getLoyaltyReward(state.loyaltyCards || Math.floor(state.sessions / LOYALTY_CARD_SIZE));
+    const reward = getLatestLoyaltyReward();
     message.className = 'loyalty-message complete';
     message.textContent = `Loyalty card complete! Kiwi served a ${reward}. New 10-stamp card started.`;
     return;
@@ -349,7 +379,8 @@ function completeSprint() {
 
   if (completedLoyaltyCard) {
     state.loyaltyCards += 1;
-    const reward = getLoyaltyReward(state.loyaltyCards);
+    const reward = getRandomLoyaltyReward();
+    state.lastLoyaltyReward = reward;
     state.stickers.push('🎟️');
     state.log.unshift({
       title: `🎟️ Loyalty card ${state.loyaltyCards} complete`,
@@ -420,9 +451,11 @@ if (typeof window !== 'undefined') {
     get state() { return state; },
     MODES,
     LOYALTY_CARD_SIZE,
+    LOYALTY_REWARDS,
     formatTime,
     getProgressPercent,
     getStampCount,
+    getRandomLoyaltyReward,
     unlockCompletionChime,
     playCompletionChime,
     setMode,
